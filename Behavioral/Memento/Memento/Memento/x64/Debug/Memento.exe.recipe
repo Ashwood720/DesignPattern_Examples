@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\CppProject\DesignPattern\Memento\Memento\x64\Debug\Memento.exe</FullPath>
+      <FullPath>C:\CppProject\DesignPattern\Behavioral\Memento\Memento\x64\Debug\Memento.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />

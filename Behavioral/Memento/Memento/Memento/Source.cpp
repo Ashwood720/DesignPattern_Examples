@@ -1,126 +1,93 @@
-#include "iostream"
-#include "string"
-#include "stack"
+#include <iostream>
+#include <string>
+#include <vector>
 
-using namespace std;
-
-class Memento 
-{
-public:
-	virtual int GetDollars() = 0;
-	virtual int GetEuro() = 0;
-	virtual ~Memento(){}
-};
-
-class ExchangeMemento : public Memento
-{
-public:
-	ExchangeMemento(int d, int e) : dollars(d), euro(e) {}
-	int GetDollars() override
-	{
-		return dollars;
-	}
-	int GetEuro() override
-	{
-		return euro;
-	}
-
+// Memento
+class Memento {
 private:
-	int dollars;
-	int euro;
-};
+    std::string state;
 
-class Exchange
-{
 public:
-	Exchange(int d, int e) : dollars(d), euro(e) {}
-	void GetDollars()
-	{
-		cout << "Dollar: " << dollars << endl;
-	}
-	void GetEuro()
-	{
-		cout << "Euro: " << euro << endl;
-	}
-	void Sell()
-	{
-		dollars ? --dollars : 0;
-	}
+    Memento(const std::string& state) : state(state) {}
 
-	void Buy()
-	{
-		++euro;
-	}
-
-	ExchangeMemento* Save()
-	{
-		return new ExchangeMemento(dollars, euro);
-	}
-
-	void Restore(Memento* exchargeMemento)
-	{
-		dollars = exchargeMemento->GetDollars();
-		euro = exchargeMemento->GetEuro();
-
-		delete exchargeMemento;
-	}
-
-private:
-	int dollars;
-	int euro;
+    std::string getState() const {
+        return state;
+    }
 };
 
-class Memory
-{
+// Originator
+class Originator {
+private:
+    std::string state;
+
 public:
-	Memory(Exchange* ex) : exchange(ex){}
-	void BackUp()
-	{
-		history.push(exchange->Save());
-	}
+    void setState(const std::string& state) {
+        this->state = state;
+    }
 
-	void Undo()
-	{
-		if (history.empty()) return;
+    std::string getState() const {
+        return state;
+    }
 
-		exchange->Restore(history.top());
-		history.pop();
-	}
+    Memento* createMemento() const {
+        return new Memento(state);
+    }
 
-private:
-	stack<Memento*> history;
-	Exchange* exchange;
+    void restoreFromMemento(const Memento* memento) {
+        state = memento->getState();
+    }
 };
 
-int main()
-{
-	Exchange* exchange = new Exchange(10, 10);
+// Caretaker
+class Caretaker {
+private:
+    std::vector<Memento*> mementos;
 
-	Memory* memory = new Memory(exchange);
+public:
+    void addMemento(Memento* memento) {
+        mementos.push_back(memento);
+    }
 
-	exchange->GetDollars();
-	exchange->GetEuro();
+    Memento* getMemento(int index) const {
+        if (index >= 0 && index < mementos.size()) {
+            return mementos[index];
+        }
+        return nullptr;
+    }
+};
 
-	cout << "... Sell dollar, buy euro ..." << endl;
+int main() {
+    Originator originator;
+    Caretaker caretaker;
 
-	exchange->Sell();
-	exchange->Buy();
+    // Set initial state
+    originator.setState("State 1");
+    std::cout << "Current state: " << originator.getState() << std::endl;
 
-	cout << "... Save state ..." << endl;
+    // Save the state
+    caretaker.addMemento(originator.createMemento());
 
-	memory->BackUp();
+    // Change the state
+    originator.setState("State 2");
+    std::cout << "Current state: " << originator.getState() << std::endl;
 
-	cout << "... Sell dollar, buy euro ..." << endl;
+    // Save the state
+    caretaker.addMemento(originator.createMemento());
 
-	exchange->Sell();
-	exchange->Buy();
+    // Change the state again
+    originator.setState("State 3");
+    std::cout << "Current state: " << originator.getState() << std::endl;
 
-	exchange->GetDollars();
-	exchange->GetEuro();
+    // Save the state
+    caretaker.addMemento(originator.createMemento());
 
-	cout << "... Ressurect state ..." << endl;
-	memory->Undo();
+    // Change the state again
+    originator.setState("State 4");
+    std::cout << "Current state: " << originator.getState() << std::endl;
 
-	exchange->GetDollars();
-	exchange->GetEuro();
+    // Restore to previous state
+    originator.restoreFromMemento(caretaker.getMemento(2));
+    std::cout << "Current state after restore: " << originator.getState() << std::endl;
+
+    return 0;
 }
